@@ -7,7 +7,7 @@ Fork of [PropelExport] (http://www.diloc.de/blog/2008/05/27/mysql-workbench-prop
 Installation
 ------------
 
-### For old MySQLWorkbench version
+### For old MySQLWorkbench versions
 
 Copy the file to your modules-folder inside the Workbench installation. 
 This should work in all versions of Windows prior to Vista.
@@ -24,8 +24,8 @@ In both case you have to restart MySQL Workbench to use it!
 Use
 ---
 
-Plugin should show up in the "Plugins" -> "Catalog menu", or at right click on table. 
-all entries from the plugin are prefixed with “PropelExport:” so you should be able to find them easily.
+* Plugin should show up in the "Plugins" -> "Catalog menu", or at right click on table. 
+* all entries from the plugin are prefixed with “PropelExport:” so you should be able to find them easily.
 
 What's New In PropelExport 0.6
 ------------------------
