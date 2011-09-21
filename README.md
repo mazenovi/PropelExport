@@ -31,7 +31,7 @@ What's New In PropelExport 0.6
 ------------------------
 
 * Works with Workbench 5.2
-* Added behaviors can be set in table's comment as <behaviors>...</behaviors>
-* Added single inheritance can be set in columns's comment as <inheritances>...</inheritances>
+* Added behaviors can be set in table's comment as <code>&lt;behaviors&gt;...&lt;/behaviors&gt;</code>
+* Added single inheritance can be set in columns's comment as <code>&lt;inheritances&gt;...&lt;/inheritances&gt;</code>
 * Added support to set package manually
 * Fix some indent bugs in XMLWriter:addContent()
