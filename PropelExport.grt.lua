@@ -41,7 +41,7 @@
 --   * support for multiple foreign key references (thanks for pointing that out Antoine!)
 -- Version 0.4.1: Fixed MEDIUMINT not being converted to INT for propel
 -- Version 0.5:
---	  * Works with Workbench 5.1
+--    * Works with Workbench 5.1
 --   * Added support for workbenchs user data types (This also fixes BOOLEANS appearing als UNKNOWN in WB 5.1)
 --     (Note: This does not work with user-types defining precision and scale, due to a Bug in Workbench)
 --   * Added support for Propel 1.3 defaultExpr
@@ -75,7 +75,9 @@ function getModuleInfo()
           "exportPropelSchemaToFile:i:o@db.Catalog",
           "setPropelExportBaseClass:i:o@db.Catalog",
           "setPropelExportPackage:i:o@db.Catalog",
-          "setPropelExportPhpName:i:o@db.Table"
+          "setPropelExportNamespace:i:o@db.Catalog",
+          "setPropelExportPhpName:i:o@db.Table",
+          "setPropelExportTableNamespace:i:o@db.Table"
                                                             -- keeping the rest unchanged; in this example there's only one
                                                             -- function, function name is PluginFunctionName and argument type
                                                             -- is db.Catalog
@@ -194,6 +196,26 @@ function getPluginInfo()
     grtV.insert(l, plugin)
 
 
+    -- create a new app.Plugin object for every plugin
+    plugin= grtV.newObj("app.Plugin", {
+    name= "wb.catalog.util.setPropelExportNamespace",
+    caption= "PropelExport: Set custom namespace",
+    moduleName= "PropelExport",
+    pluginType= "normal",
+    moduleFunctionName= "setPropelExportNamespace",
+    inputValues= {objectPluginInput("db.Catalog")},
+    rating= 100,
+    showProgress= 0,
+    groups= {"Catalog/Utilities", "Menu/Catalog"}
+  })
+
+    -- fixup owner
+    plugin.inputValues[1].owner= plugin
+
+    -- add to the list of plugins
+    grtV.insert(l, plugin)
+
+
   -- create a new app.Plugin object for every plugin
     plugin= grtV.newObj("app.Plugin", {
     name= "wb.table.util.setPropelExportPhpName",
@@ -201,6 +223,25 @@ function getPluginInfo()
     moduleName= "PropelExport",
     pluginType= "normal",
     moduleFunctionName= "setPropelExportPhpName",
+    inputValues= {objectPluginInput("db.Table")},
+    rating= 100,
+    showProgress= 0,
+    groups= {"Catalog/Utilities", "Menu/Table"}
+  })
+    -- fixup owner
+    plugin.inputValues[1].owner= plugin
+
+    -- add to the list of plugins
+    grtV.insert(l, plugin)
+
+
+    -- create a new app.Plugin object for every plugin
+    plugin= grtV.newObj("app.Plugin", {
+    name= "wb.table.util.setPropelExportTableNamespace",
+        caption= "PropelExport: Set custom Namespace",
+    moduleName= "PropelExport",
+    pluginType= "normal",
+    moduleFunctionName= "setPropelExportTableNamespace",
     inputValues= {objectPluginInput("db.Table")},
     rating= 100,
     showProgress= 0,
@@ -531,6 +572,10 @@ function geneneratePropelSchemaFromCatalog(catalog)
   if (catalog.customData["propelExportPackage"]~= nil and catalog.customData["propelExportPackage"]~="") then
     xml:addAttribute("package",catalog.customData["propelExportPackage"]);
   end
+  
+  if (catalog.customData["propelExportNamespace"]~= nil and catalog.customData["propelExportNamespace"]~="") then
+    xml:addAttribute("namespace",catalog.customData["propelExportNamespace"]);
+  end
 
   -- go through all tables:
     for i = 1, grtV.getn(catalog.schemata) do
@@ -543,6 +588,11 @@ function geneneratePropelSchemaFromCatalog(catalog)
       if (currentTable.customData["phpName"]~=nil)
       then
         xml:addAttribute('phpName',currentTable.customData["phpName"]);
+      end
+
+      if (currentTable.customData["Namespace"]~=nil)
+      then
+        xml:addAttribute('namespace',currentTable.customData["Namespace"]);
       end
       
        
@@ -838,6 +888,31 @@ function setPropelExportPackage(catalog)
   print ("done");
 end
 
+--
+-- Set a custom namespace to be added to the database tag of the resulting schema file.
+-- This is saved inside the workbench file, so on subsequent exports it is reused.
+function setPropelExportNamespace(catalog)
+  printVersion();
+  print("Setting namespace...");
+
+  local question="New namespace?";
+  if (catalog.customData["propelExportNamespace"]~=nil) then
+    question = question .. " (" .. catalog.customData["propelExportNamespace"] ..")"
+  end
+  propelExportNamespace=Workbench:input(question);
+
+    if (propelExportNamespace==" ")
+    then
+      -- Remove the previously set package
+      catalog.customData["propelExportNamespace"]="";
+    elseif (propelExportNamespace~="")
+    then
+      -- Try to save the package
+      catalog.customData["propelExportNamespace"]=propelExportNamespace;
+    end
+  print ("done");
+end
+
 
 
 --
@@ -865,5 +940,33 @@ function setPropelExportPhpName(_table)
 
   --this is a trick to let MySQL Workbench believe there are changes in the file:
   _table.owner.owner.owner.customData["phpName".._table.name]="set";
+  print ("done");
+end
+
+--
+-- Sets a custom Namespace for a table.
+-- If you want to unset the Namespace, enter a single space as Namespace
+function setPropelExportTableNamespace(_table)
+  printVersion();
+  print("Setting Namespace of " .. _table.name);
+
+  local question="New Namespace?";
+  if (_table.customData["Namespace"]~=nil) then
+    question = question .. " (" .. _table.customData["Namespace"] ..")";
+  end
+  Namespace=Workbench:input(question);
+
+  if (Namespace==" ")
+  then
+    -- Remove the previously set Namespace
+    _table.customData["Namespace"]=nil;
+  elseif (Namespace~="")
+  then
+    -- Try to save the Namespace
+    _table.customData["Namespace"]=Namespace;
+  end
+
+  --this is a trick to let MySQL Workbench believe there are changes in the file:
+  _table.owner.owner.owner.customData["Namespace".._table.name]="set";
   print ("done");
 end
